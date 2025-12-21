@@ -95,7 +95,7 @@ class OllamaLLM(LocalLLM):
             response = requests.post(
                 f"{self.base_url}/api/generate",
                 json=payload,
-                timeout=120
+                timeout=300
             )
             response.raise_for_status()
             result = response.json()
@@ -139,7 +139,7 @@ class OllamaLLM(LocalLLM):
                 f"{self.base_url}/api/generate",
                 json=payload,
                 stream=True,
-                timeout=120
+                timeout=300
             )
             response.raise_for_status()
 

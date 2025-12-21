@@ -11,7 +11,7 @@ vector_db:
 embeddings:
   model_name: "sentence-transformers/all-MiniLM-L6-v2"
   model_kwargs:
-    device: "cuda"  # Options: cpu, cuda, mps
+    device: "auto"  # Options: cpu, cuda, mps, auto (auto will use GPU if available)
   encode_kwargs:
     normalize_embeddings: true
     batch_size: 32
@@ -28,17 +28,17 @@ document_processing:
 # Local LLM Settings
 llm:
   provider: "ollama"  # Options: ollama, llamacpp, gpt4all
-  model_name: "llama2"  # For Ollama: llama2, mistral, phi, codellama
+  model_name: "llama3.2:latest"  # For Ollama: llama2, mistral, phi, codellama
   base_url: "http://localhost:11434"  # Ollama default
   temperature: 0.7
-  max_tokens: 2048
+  max_tokens: 512
   streaming: true
   context_window: 4096
 
 # Retrieval Settings
 retrieval:
   top_k: 5
-  score_threshold: 0.7
+  score_threshold: 0.3
   use_reranking: false
   reranker_model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
   max_context_length: 3000

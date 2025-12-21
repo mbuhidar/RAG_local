@@ -180,7 +180,11 @@ class RAGPipeline:
             if score >= score_threshold
         ]
 
-        logger.info(f"Retrieved {len(filtered_results)} relevant chunks")
+        if results:
+            max_score = max(score for _, score, _ in results)
+            logger.info(f"Retrieved {len(filtered_results)} relevant chunks (max score: {max_score:.3f}, threshold: {score_threshold})")
+        else:
+            logger.info("No results found from vector search")
         return filtered_results
 
     def generate_response(

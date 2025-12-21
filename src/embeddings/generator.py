@@ -9,6 +9,8 @@ import logging
 from pathlib import Path
 from typing import List, Optional
 
+import torch
+
 logger = logging.getLogger(__name__)
 
 
@@ -28,13 +30,13 @@ class EmbeddingGenerator:
 
         Args:
             model_name: Name of the sentence-transformer model
-            device: Device to run on (cpu, cuda, mps)
+            device: Device to run on (cpu, cuda, mps, auto)
             cache_folder: Folder to cache models
             batch_size: Batch size for encoding
             normalize: Whether to normalize embeddings
         """
         self.model_name = model_name
-        self.device = device
+        self.device = self._get_device(device)
         self.batch_size = batch_size
         self.normalize = normalize
         self.cache_folder = cache_folder
@@ -43,6 +45,38 @@ class EmbeddingGenerator:
             Path(cache_folder).mkdir(parents=True, exist_ok=True)
 
         self._load_model()
+
+    def _get_device(self, requested_device: str) -> str:
+        """
+        Determine which device to use, with fallback.
+        
+        Args:
+            requested_device: Requested device (cpu, cuda, mps, auto)
+            
+        Returns:
+            Actual device to use
+        """
+        if requested_device == "auto" or requested_device == "cuda":
+            if torch.cuda.is_available():
+                device_name = torch.cuda.get_device_name(0)
+                logger.info(f"✓ GPU available: {device_name}")
+                logger.info("✓ Using CUDA for embeddings")
+                return "cuda"
+            else:
+                logger.warning("✗ CUDA requested but not available")
+                logger.info("→ Falling back to CPU for embeddings")
+                return "cpu"
+        elif requested_device == "mps":
+            if torch.backends.mps.is_available():
+                logger.info("✓ Using MPS (Apple Silicon) for embeddings")
+                return "mps"
+            else:
+                logger.warning("✗ MPS requested but not available")
+                logger.info("→ Falling back to CPU for embeddings")
+                return "cpu"
+        else:
+            logger.info("→ Using CPU for embeddings")
+            return "cpu"
 
     def _load_model(self):
         """Load the embedding model."""
@@ -61,7 +95,7 @@ class EmbeddingGenerator:
             device=self.device,
             cache_folder=self.cache_folder
         )
-        logger.info(f"Model loaded on {self.device}")
+        logger.info(f"✓ Embedding model loaded successfully on {self.device.upper()}")
 
     def embed_text(self, text: str) -> List[float]:
         """

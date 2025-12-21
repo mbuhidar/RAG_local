@@ -5,7 +5,7 @@ Provides Gradio-based chat interface for the RAG system.
 """
 
 import logging
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import gradio as gr
 
@@ -34,25 +34,25 @@ class ChatInterface:
         self.rag_pipeline = rag_pipeline
         self.title = title
         self.description = description
-        self.chat_history: List[Tuple[str, str]] = []
+        self.chat_history: List[Dict[str, str]] = []
 
     def process_message(
         self,
         message: str,
-        history: List[Tuple[str, str]]
-    ) -> Tuple[str, List[Tuple[str, str]]]:
+        history: List[Dict[str, str]]
+    ) -> List[Dict[str, str]]:
         """
         Process user message and return response.
 
         Args:
             message: User message
-            history: Chat history
+            history: Chat history (list of message dicts with 'role' and 'content')
 
         Returns:
-            Tuple of (response, updated_history)
+            Updated history
         """
         if not message.strip():
-            return "", history
+            return history
 
         logger.info(f"Processing message: {message}")
 
@@ -75,18 +75,20 @@ class ChatInterface:
                     sources_text += f"{i}. {filename} (relevance: {score:.2f})\n"
                 response += sources_text
 
-            # Update history
-            history.append((message, response))
+            # Update history with new message format
+            history.append({"role": "user", "content": message})
+            history.append({"role": "assistant", "content": response})
             self.chat_history = history
 
         except Exception as e:
             logger.error(f"Error processing message: {e}")
             response = f"Error: {str(e)}"
-            history.append((message, response))
+            history.append({"role": "user", "content": message})
+            history.append({"role": "assistant", "content": response})
 
-        return "", history
+        return history
 
-    def clear_history(self) -> List[Tuple[str, str]]:
+    def clear_history(self) -> List[Dict[str, str]]:
         """Clear chat history."""
         self.chat_history = []
         logger.info("Chat history cleared")
@@ -145,12 +147,12 @@ class ChatInterface:
                 submit.click(
                     fn=self.process_message,
                     inputs=[msg, chatbot],
-                    outputs=[msg, chatbot]
+                    outputs=[chatbot]
                 )
                 msg.submit(
                     fn=self.process_message,
                     inputs=[msg, chatbot],
-                    outputs=[msg, chatbot]
+                    outputs=[chatbot]
                 )
                 clear.click(
                     fn=self.clear_history,
