@@ -2,10 +2,10 @@
 
 # Vector Database Settings
 vector_db:
-  provider: "chromadb"  # Options: chromadb, faiss
+  provider: "chromadb"  # Options: chromadb for < 1M documents, faiss for larger datasets
   persist_directory: "./data/vectorstore"
   collection_name: "rag_documents"
-  distance_metric: "cosine"  # Options: cosine, l2, ip
+  distance_metric: "cosine"  # Options: cosine (cosine similarity), l2 (Euclidean), ip (inner product)
 
 # Embedding Model Settings
 embeddings:
@@ -19,8 +19,8 @@ embeddings:
 
 # Document Processing Settings
 document_processing:
-  chunk_size: 1000
-  chunk_overlap: 200
+  chunk_size: 1000 # Maximum number of characters per chunk
+  chunk_overlap: 200 # Number of characters to overlap between chunks
   separators: ["\n\n", "\n", " ", ""]
   supported_formats: ["txt", "pdf", "md", "docx"]
   extract_metadata: true
